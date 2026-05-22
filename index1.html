@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tulia Beta</title>
+  <style>
+    body {
+      font-family: Arial;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      background: #f7f7f7;
+    }
+
+    #chat {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      min-height: 200px;
+      margin-bottom: 10px;
+    }
+
+    .user {
+      text-align: right;
+      margin: 5px;
+      color: #444;
+    }
+
+    .ai {
+      text-align: left;
+      margin: 5px;
+      color: #000;
+    }
+
+    input {
+      width: 80%;
+      padding: 10px;
+    }
+
+    button {
+      padding: 10px;
+    }
+
+    #feedback {
+      display: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Tulia</h2>
+
+<div id="chat"></div>
+
+<input id="input" placeholder="Write anything…" />
+<button onclick="send()">Send</button>
+
+<div id="feedback">
+  <p id="fb-text">Did this response resonate with you?</p>
+  <button onclick="sendFeedback(3)">👍</button>
+  <button onclick="sendFeedback(2)">🤔</button>
+  <button onclick="sendFeedback(1)">👎</button>
+</div>
+
+<p style="font-size:12px;">
+Tulia is a conversational companion.<br>
+You can speak in any language — Tulia will respond accordingly.<br>
+Tulia does not provide medical or therapeutic advice.
+</p>
+
+<script>
+const API = "https://tulia-beta-production-61e4.up.railway.app";
+
+function addMessage(text, cls) {
+  const div = document.createElement("div");
+  div.className = cls;
+  div.innerText = text;
+  document.getElementById("chat").appendChild(div);
+}
+
+async function send() {
+  const input = document.getElementById("input").value;
+  if (!input) return;
+
+  addMessage(input, "user");
+
+  const res = await fetch(API + "/chat", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({input})
+  });
+
+  const data = await res.json();
+
+  addMessage(data.response, "ai");
+
+  document.getElementById("input").value = "";
+
+  if (data.show_feedback) {
+    document.getElementById("feedback").style.display = "block";
+  }
+}
+
+async function sendFeedback(score) {
+  await fetch(API + "/feedback", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({score})
+  });
+
+  document.getElementById("feedback").style.display = "none";
+}
+</script>
+
+</body>
+</html>
+``
