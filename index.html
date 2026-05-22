@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tulia Beta</title>
+</head>
+<body>
+
+<h2>Tulia</h2>
+
+<input id="input" placeholder="Write anything…" style="width:300px;" />
+<button onclick="send()">Send</button>
+
+<p id="response"></p>
+
+<div id="feedback" style="display:none;">
+  <p id="fb-text">Did this response resonate with you?</p>
+  <button onclick="sendFeedback(3)">👍</button>
+  <button onclick="sendFeedback(2)">🤔</button>
+  <button onclick="sendFeedback(1)">👎</button>
+</div>
+
+<p style="font-size:12px;">
+Tulia is a conversational companion.<br>
+You can speak in any language — Tulia will respond accordingly.<br>
+Tulia does not provide medical or therapeutic advice.
+</p>
+
+<script>
+let lastInput = "";
+
+function detectItalian(text){
+  return ["non","sono","confuso"].some(w => text.toLowerCase().includes(w));
+}
+
+async function send() {
+  const input = document.getElementById("input").value;
+  lastInput = input;
+
+  const res = await fetch("http://127.0.0.1:8000/chat", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({input})
+  });
+
+  const data = await res.json();
+
+  document.getElementById("response").innerText = data.response;
+
+  // localization feedback
+  if(detectItalian(input)){
+    document.getElementById("fb-text").innerText = "Ti è arrivata questa risposta?";
+  } else {
+    document.getElementById("fb-text").innerText = "Did this response resonate with you?";
+  }
+
+  if(data.show_feedback){
+    document.getElementById("feedback").style.display = "block";
+  }
+}
+
+async function sendFeedback(score) {
+  await fetch("http://127.0.0.1:8000/feedback", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({score})
+  });
+
+  document.getElementById("feedback").style.display = "none";
+}
+</script>
+
+</body>
+</html>
